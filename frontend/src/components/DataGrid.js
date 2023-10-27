@@ -36,6 +36,12 @@ export default function ServerSideDataGrid() {
     pageSize: 10,
     pageSizeOptions: [5, 10, 15],
     query: '',
+    sortFields: columns.map((item) => {
+      return {
+        field: item.field,
+        sort: null,
+      }
+    }),
   })
 
   async function getData() {
@@ -56,6 +62,7 @@ export default function ServerSideDataGrid() {
       url.searchParams.set('query', pageState.query)
       url.searchParams.set('page', pageState.page + 1)
       url.searchParams.set('limit', pageState.pageSize)
+      url.searchParams.set('title', pageState.titleSort)
 
       const res = await fetch(url, myInit)
 
@@ -91,8 +98,14 @@ export default function ServerSideDataGrid() {
         disableRowSelectionOnClick
         // ------
         onStateChange={(s) => {
+          console.log('s', s)
           const searchStringArray = s.filter.filterModel.quickFilterValues
           console.log('searchStringArray', searchStringArray)
+
+          const sortField = s.sorting.sortModel[0]?.field
+          const sortValue = s.sorting.sortModel[0]?.sort
+
+          console.log('sorting', sortField, sortValue)
 
           const searchQuery = encodeURIComponent(searchStringArray.join(' '))
           console.log('searchQuery', searchQuery)

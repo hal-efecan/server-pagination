@@ -15,10 +15,4 @@ export class AppController {
     if (!limit) limit = 10;
     return this.appService.myData(page, limit, query);
   }
-
-  // @Get('search')
-  // getQuery(@Query('query') query: string) {
-  //   console.log('query', query);
-  //   return this.appService.myQuery(query);
-  // }
 }
