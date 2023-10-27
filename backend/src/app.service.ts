@@ -677,36 +677,68 @@ export class AppService {
     return 'Hello World!';
   }
 
-  myData(page: number, limit: number): any {
+  myData(page: number, limit: number, query: string): any {
     const dataLength = this.data.length;
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
 
-    console.log('startIndex', startIndex);
-    console.log('endIndex', endIndex);
-
-    function nextPage(endIndex, dataLength) {
-      if (endIndex < dataLength) {
-        return page + 1;
-      } else {
-        return null;
-      }
+    function nextPage(endIndex: number, dataLength: number) {
+      endIndex < dataLength ? page + 1 : null;
     }
 
-    function prevPage(startIndex) {
-      if (startIndex > 0) {
-        return page - 1;
-      } else {
-        return null;
-      }
+    function prevPage(startIndex: number) {
+      startIndex > 0 ? page - 1 : null;
     }
+
+    // Want to filter the results based on the search query
+    // Then return the data based on pagination and results per page logic
+
+    const filteredResults = this.data.filter((result) => {
+      const res = result.body.includes(query);
+      if (res) {
+        return result;
+      }
+    });
+
+    const filteredLength = filteredResults.length;
+
+    console.log(`filteredResults ${query}`, filteredResults);
+    console.log('query', query);
+
+    // data filter
+    const dataToReturn =
+      query === undefined
+        ? this.data.slice(startIndex, endIndex)
+        : filteredResults.slice(startIndex, endIndex);
+
+    // next page
+    const nxt =
+      query === undefined
+        ? nextPage(endIndex, dataLength)
+        : nextPage(endIndex, filteredLength);
+
+    // previous page
+    const prv =
+      query === undefined ? prevPage(startIndex) : prevPage(startIndex);
+
+    // page count
+    const pageCount =
+      query === undefined
+        ? dataLength < limit
+          ? 1
+          : Math.ceil(dataLength / limit)
+        : filteredLength < limit
+        ? 1
+        : Math.ceil(filteredLength / limit);
+
+    const length = query === undefined ? dataLength : filteredLength;
 
     return {
-      data: this.data.slice(startIndex, endIndex),
-      total: dataLength,
-      count: dataLength < limit ? 1 : Math.ceil(dataLength / limit),
-      next: nextPage(endIndex, dataLength),
-      prev: prevPage(startIndex),
+      data: dataToReturn,
+      total: length,
+      count: pageCount,
+      next: nxt,
+      prev: prv,
     };
   }
 }
