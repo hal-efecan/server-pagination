@@ -682,6 +682,8 @@ export class AppService {
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
 
+    const decodedQueryString = decodeURIComponent(query);
+
     function nextPage(endIndex: number, dataLength: number) {
       endIndex < dataLength ? page + 1 : null;
     }
@@ -694,7 +696,7 @@ export class AppService {
     // Then return the data based on pagination and results per page logic
 
     const filteredResults = this.data.filter((result) => {
-      const res = result.body.includes(query);
+      const res = result.body.includes(decodedQueryString);
       if (res) {
         return result;
       }
@@ -702,8 +704,8 @@ export class AppService {
 
     const filteredLength = filteredResults.length;
 
-    console.log(`filteredResults ${query}`, filteredResults);
-    console.log('query', query);
+    console.log(`filteredResults ${decodedQueryString}`, filteredResults);
+    console.log('query', decodedQueryString);
 
     // data filter
     const dataToReturn =
@@ -719,11 +721,13 @@ export class AppService {
 
     // previous page
     const prv =
-      query === undefined ? prevPage(startIndex) : prevPage(startIndex);
+      decodedQueryString === undefined
+        ? prevPage(startIndex)
+        : prevPage(startIndex);
 
     // page count
     const pageCount =
-      query === undefined
+      decodedQueryString === undefined
         ? dataLength < limit
           ? 1
           : Math.ceil(dataLength / limit)

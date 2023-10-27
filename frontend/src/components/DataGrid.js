@@ -51,12 +51,11 @@ export default function ServerSideDataGrid() {
 
       setPageState((old) => ({ ...old, isLoading: true }))
 
-      const encode = encodeURI(pageState.query)
-      console.log('encode', encode)
+      const url = new URL(`http://localhost:5000`)
 
-      const url = `http://localhost:5000/?query=${pageState.query}&page=${
-        pageState.page + 1
-      }&limit=${pageState.pageSize}`
+      url.searchParams.set('query', pageState.query)
+      url.searchParams.set('page', pageState.page + 1)
+      url.searchParams.set('limit', pageState.pageSize)
 
       const res = await fetch(url, myInit)
 
@@ -95,9 +94,8 @@ export default function ServerSideDataGrid() {
           const searchStringArray = s.filter.filterModel.quickFilterValues
           console.log('searchStringArray', searchStringArray)
 
-          // const encode = pageState.query.concat()
-          // console.log('encode', encode)
-
+          const searchQuery = encodeURIComponent(searchStringArray.join(' '))
+          console.log('searchQuery', searchQuery)
           if (searchStringArray.length === 0) {
             setPageState({
               ...pageState,
@@ -106,7 +104,7 @@ export default function ServerSideDataGrid() {
           } else {
             setPageState({
               ...pageState,
-              query: searchStringArray[0],
+              query: searchQuery,
             })
           }
         }}
