@@ -28,7 +28,7 @@ const columns = [
 ]
 
 export default function ServerSideDataGrid() {
-  const [pageState, setPageState] = React.useState({
+  const initialState = {
     isLoading: false,
     data: [],
     total: 0,
@@ -42,7 +42,8 @@ export default function ServerSideDataGrid() {
         sort: null,
       }
     }),
-  })
+  }
+  const [pageState, setPageState] = React.useState(initialState)
 
   async function getData() {
     try {
@@ -62,7 +63,12 @@ export default function ServerSideDataGrid() {
       url.searchParams.set('query', pageState.query)
       url.searchParams.set('page', pageState.page + 1)
       url.searchParams.set('limit', pageState.pageSize)
-      url.searchParams.set('title', pageState.titleSort)
+
+      const id = pageState.sortFields.find((item) => item.field === 'id')
+      const body = pageState.sortFields.find((item) => item.field === 'body')
+      url.searchParams.set('id', id.sort)
+      url.searchParams.set('body', body.sort)
+      // url.searchParams.set('title', pageState.sortFields['title']?.value)
 
       const res = await fetch(url, myInit)
 
@@ -87,13 +93,18 @@ export default function ServerSideDataGrid() {
 
   React.useEffect(() => {
     getData()
-  }, [pageState.page, pageState.pageSize, pageState.query])
+  }, [
+    pageState.page,
+    pageState.pageSize,
+    pageState.query,
+    pageState.sortFields[0].sort, // id
+    pageState.sortFields[3].sort, // Body
+  ])
 
   return (
     <Box sx={{ height: 400, maxWidth: 1000 }}>
-      {/* fsdfsdfsd */}
       <DataGrid
-        initialState={initialState}
+        initialState={gridInitialState}
         pageSizeOptions={pageState.pageSizeOptions}
         checkboxSelection
         disableRowSelectionOnClick
@@ -101,24 +112,72 @@ export default function ServerSideDataGrid() {
         onStateChange={(s) => {
           console.log('s', s)
           const searchStringArray = s.filter.filterModel.quickFilterValues
+
           console.log('searchStringArray', searchStringArray)
 
           const sortField = s.sorting.sortModel[0]?.field
           const sortValue = s.sorting.sortModel[0]?.sort
 
-          console.log('sorting', sortField, sortValue)
-
           const searchQuery = encodeURIComponent(searchStringArray.join(' '))
+
+          console.log('sorting', sortField, sortValue)
           console.log('searchQuery', searchQuery)
+
+          // const arr = pageState.sortFields.map((item) => {
+          //   if (item.field === sortField) {
+          //     return {
+          //       field: sortField,
+          //       sort: sortValue,
+          //     }
+          //   } else {
+          //     return item
+          //   }
+          // })
+
+          // console.log('myArray', arr)
+
+          // if (s.sorting.sortModel.length === 0) {
+          //   setPageState({
+          //     ...pageState,
+          //     sortFields: columns.map((item) => {
+          //       return {
+          //         field: item.field,
+          //         sort: null,
+          //       }
+          //     }),
+          //   })
+          //   return
+          // }
+
           if (searchStringArray.length === 0) {
             setPageState({
               ...pageState,
               query: '',
+              sortFields: pageState.sortFields.map((item) => {
+                if (item.field === sortField) {
+                  return {
+                    field: sortField,
+                    sort: sortValue,
+                  }
+                } else {
+                  return item
+                }
+              }),
             })
           } else {
             setPageState({
               ...pageState,
               query: searchQuery,
+              sortFields: pageState.sortFields.map((item) => {
+                if (item.field === sortField) {
+                  return {
+                    field: sortField,
+                    sort: sortValue,
+                  }
+                } else {
+                  return item
+                }
+              }),
             })
           }
         }}
@@ -148,7 +207,7 @@ export default function ServerSideDataGrid() {
   )
 }
 
-const initialState = {
+const gridInitialState = {
   pagination: {
     paginationModel: {
       page: 0,
