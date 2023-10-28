@@ -75,7 +75,7 @@ export default function ServerSideDataGrid() {
       const res = await fetch(url, myInit)
 
       if (!res.ok) {
-        throw new Error('Something happened when retrieving data')
+        throw new Error('Something happened while retrieving your data')
       }
 
       const json = await res.json()
