@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-
+import { sortByBody, sortById } from './common/sort';
 @Injectable()
 export class AppService {
   public data = [
@@ -677,7 +677,13 @@ export class AppService {
     return 'Hello World!';
   }
 
-  myData(page: number, limit: number, query: string): any {
+  async myData(
+    page: number,
+    limit: number,
+    query: string,
+    sortBody: string,
+    sortId: string,
+  ) {
     const dataLength = this.data.length;
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
@@ -692,30 +698,36 @@ export class AppService {
       startIndex > 0 ? page - 1 : null;
     }
 
-    // Want to filter the results based on the search query
-    // Then return the data based on pagination and results per page logic
+    // query = empty
+    // return unfiltered results
+    const emptyQuery = query.length === 0 && this.data;
 
-    const filteredResults = this.data.filter((result) => {
-      const res = result.body.includes(decodedQueryString);
-      if (res) {
-        return result;
-      }
-    });
+    // query = not empty
+    // return filtered results
+    const fullQuery =
+      query.length > 0 &&
+      this.data.filter((result) => result.body.includes(decodedQueryString));
 
-    const filteredLength = filteredResults.length;
+    let returnedData: Array<object>;
 
-    console.log(`filteredResults ${decodedQueryString}`, filteredResults);
-    console.log('query', decodedQueryString);
+    // Sort parameters
+    if (emptyQuery) {
+      returnedData = emptyQuery
+        .sort((a, b) => sortByBody(a, b, sortBody))
+        .sort((a, b) => sortById(a, b, sortId));
+    }
 
-    // data filter
-    const dataToReturn =
-      query === undefined
-        ? this.data.slice(startIndex, endIndex)
-        : filteredResults.slice(startIndex, endIndex);
+    if (fullQuery) {
+      returnedData = fullQuery
+        .sort((a, b) => sortByBody(a, b, sortBody))
+        .sort((a, b) => sortById(a, b, sortId));
+    }
+
+    const filteredLength = returnedData.length;
 
     // next page
     const nxt =
-      query === undefined
+      query === ''
         ? nextPage(endIndex, dataLength)
         : nextPage(endIndex, filteredLength);
 
@@ -735,10 +747,17 @@ export class AppService {
         ? 1
         : Math.ceil(filteredLength / limit);
 
-    const length = query === undefined ? dataLength : filteredLength;
+    const length = query.length === 0 ? dataLength : filteredLength;
+
+    // SEARCHABLE
+    // Query ["", "sdfsdf"]
+
+    // SORTABLE
+    // id=null, title=null, body=null
 
     return {
-      data: dataToReturn,
+      // data: dataToReturn,
+      data: returnedData.slice(startIndex, endIndex),
       total: length,
       count: pageCount,
       next: nxt,
