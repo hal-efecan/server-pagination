@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { sortByBody, sortById } from './common/sort';
+import { sortByBody, sortById, sortByTitle } from './common/sort';
 @Injectable()
 export class AppService {
   public data = [
@@ -683,6 +683,7 @@ export class AppService {
     query: string,
     sortBody: string,
     sortId: string,
+    sortTitle: string,
   ) {
     const dataLength = this.data.length;
     const startIndex = (page - 1) * limit;
@@ -698,40 +699,37 @@ export class AppService {
       startIndex > 0 ? page - 1 : null;
     }
 
-    // query = empty
-    // return unfiltered results
     const emptyQuery = query.length === 0 && this.data;
 
-    // query = not empty
-    // return filtered results
     const fullQuery =
       query.length > 0 &&
       this.data.filter((result) => result.body.includes(decodedQueryString));
 
     let returnedData: Array<object>;
 
-    // Sort parameters
     if (emptyQuery) {
       returnedData = emptyQuery
         .sort((a, b) => sortByBody(a, b, sortBody))
-        .sort((a, b) => sortById(a, b, sortId));
+        .sort((a, b) => sortById(a, b, sortId))
+        .sort((a, b) => sortByTitle(a, b, sortTitle));
     }
 
     if (fullQuery) {
       returnedData = fullQuery
         .sort((a, b) => sortByBody(a, b, sortBody))
-        .sort((a, b) => sortById(a, b, sortId));
+        .sort((a, b) => sortById(a, b, sortId))
+        .sort((a, b) => sortByTitle(a, b, sortTitle));
     }
 
     const filteredLength = returnedData.length;
 
-    // next page
+    // next
     const nxt =
       query === ''
         ? nextPage(endIndex, dataLength)
         : nextPage(endIndex, filteredLength);
 
-    // previous page
+    // previous
     const prv =
       decodedQueryString === undefined
         ? prevPage(startIndex)
@@ -749,14 +747,7 @@ export class AppService {
 
     const length = query.length === 0 ? dataLength : filteredLength;
 
-    // SEARCHABLE
-    // Query ["", "sdfsdf"]
-
-    // SORTABLE
-    // id=null, title=null, body=null
-
     return {
-      // data: dataToReturn,
       data: returnedData.slice(startIndex, endIndex),
       total: length,
       count: pageCount,

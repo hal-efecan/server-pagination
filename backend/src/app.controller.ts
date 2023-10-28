@@ -12,9 +12,11 @@ export class AppController {
     @Query('query') query: string,
     @Query('body') sortBody: string,
     @Query('id') id: string,
+    @Query('title') title: string,
   ) {
+    // Defaults
     if (!page) page = 1;
     if (!limit) limit = 10;
-    return this.appService.myData(page, limit, query, sortBody, id);
+    return this.appService.myData(page, limit, query, sortBody, id, title);
   }
 }

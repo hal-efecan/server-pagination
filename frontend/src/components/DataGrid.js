@@ -66,9 +66,11 @@ export default function ServerSideDataGrid() {
 
       const id = pageState.sortFields.find((item) => item.field === 'id')
       const body = pageState.sortFields.find((item) => item.field === 'body')
+      const title = pageState.sortFields.find((item) => item.field === 'title')
+
       url.searchParams.set('id', id.sort)
       url.searchParams.set('body', body.sort)
-      // url.searchParams.set('title', pageState.sortFields['title']?.value)
+      url.searchParams.set('title', title.sort)
 
       const res = await fetch(url, myInit)
 
@@ -98,6 +100,7 @@ export default function ServerSideDataGrid() {
     pageState.pageSize,
     pageState.query,
     pageState.sortFields[0].sort, // id
+    pageState.sortFields[2].sort, // title
     pageState.sortFields[3].sort, // Body
   ])
 
@@ -113,41 +116,14 @@ export default function ServerSideDataGrid() {
           console.log('s', s)
           const searchStringArray = s.filter.filterModel.quickFilterValues
 
-          console.log('searchStringArray', searchStringArray)
-
           const sortField = s.sorting.sortModel[0]?.field
           const sortValue = s.sorting.sortModel[0]?.sort
 
           const searchQuery = encodeURIComponent(searchStringArray.join(' '))
 
+          console.log('searchStringArray', searchStringArray)
           console.log('sorting', sortField, sortValue)
           console.log('searchQuery', searchQuery)
-
-          // const arr = pageState.sortFields.map((item) => {
-          //   if (item.field === sortField) {
-          //     return {
-          //       field: sortField,
-          //       sort: sortValue,
-          //     }
-          //   } else {
-          //     return item
-          //   }
-          // })
-
-          // console.log('myArray', arr)
-
-          // if (s.sorting.sortModel.length === 0) {
-          //   setPageState({
-          //     ...pageState,
-          //     sortFields: columns.map((item) => {
-          //       return {
-          //         field: item.field,
-          //         sort: null,
-          //       }
-          //     }),
-          //   })
-          //   return
-          // }
 
           if (searchStringArray.length === 0) {
             setPageState({
@@ -160,7 +136,10 @@ export default function ServerSideDataGrid() {
                     sort: sortValue,
                   }
                 } else {
-                  return item
+                  return {
+                    field: item.field,
+                    sort: null,
+                  }
                 }
               }),
             })
@@ -175,7 +154,10 @@ export default function ServerSideDataGrid() {
                     sort: sortValue,
                   }
                 } else {
-                  return item
+                  return {
+                    field: item.field,
+                    sort: null,
+                  }
                 }
               }),
             })
