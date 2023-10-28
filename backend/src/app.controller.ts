@@ -10,9 +10,11 @@ export class AppController {
     @Query('page', ParseIntPipe) page: number,
     @Query('limit', ParseIntPipe) limit: number,
     @Query('query') query: string,
+    @Query('body') sortBody: string,
+    @Query('id') id: string,
   ) {
     if (!page) page = 1;
     if (!limit) limit = 10;
-    return this.appService.myData(page, limit, query);
+    return this.appService.myData(page, limit, query, sortBody, id);
   }
 }
